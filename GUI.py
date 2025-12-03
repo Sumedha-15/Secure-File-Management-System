@@ -28,7 +28,7 @@ class FileManagerGUI:
         tk.Entry(root, textvariable=self.path_var, width=50).pack(pady=5)
         tk.Button(root, text="Browse", command=self.browse_folder).pack(pady=5)
 
-        # Buttons
+        # Buttons for operations
         tk.Button(root, text="Create Folder", command=self.create_folder).pack(pady=5)
         tk.Button(root, text="Create File", command=self.create_file).pack(pady=5)
         tk.Button(root, text="Delete Item", command=self.delete_item).pack(pady=5)
@@ -36,6 +36,9 @@ class FileManagerGUI:
         tk.Button(root, text="Move Item", command=self.move_item).pack(pady=5)
         tk.Button(root, text="Search Files", command=self.search_files).pack(pady=5)
         tk.Button(root, text="Show Storage Usage", command=self.show_storage).pack(pady=5)
+
+        # Change 4: Add Clear Output button
+        tk.Button(root, text="Clear Output", command=lambda: self.result_box.delete("1.0", tk.END)).pack(pady=5)
 
         # Change 3: Add scrollbar to result box
         scroll = tk.Scrollbar(root)
