@@ -68,17 +68,31 @@ class FileManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Secure File Manager")
-        self.root.geometry("600x500")
+        self.root.geometry("650x550")
         self.root.configure(bg="#e6f2ff")  # Background color
 
         # CENTERING FRAME
         self.main_frame = Frame(root, bg="#e6f2ff")
-        self.main_frame.pack(expand=True)
+        self.main_frame.pack(expand=True, fill=BOTH)
 
         # Title
         self.title = Label(self.main_frame, text="Secure File Management System",
                            font=("Helvetica", 20, "bold"), bg="#e6f2ff", fg="#1a1a1a")
-        self.title.pack(pady=20)
+        self.title.pack(pady=15)
+
+        # ======================
+        # Scrollable Text Box (now on top)
+        # ======================
+        box_frame = Frame(self.main_frame, bg="#d9f0ff", bd=3, relief=GROOVE)
+        box_frame.pack(pady=10, padx=20, fill=BOTH, expand=False)
+
+        self.scroll = Scrollbar(box_frame)
+        self.scroll.pack(side=RIGHT, fill=Y)
+
+        self.output = Text(box_frame, height=12, width=70, yscrollcommand=self.scroll.set,
+                           font=("Helvetica", 12), bg="#f0f8ff", bd=0, wrap=WORD)
+        self.output.pack(side=LEFT, fill=BOTH, expand=True)
+        self.scroll.config(command=self.output.yview)
 
         # Buttons Frame
         self.button_frame = Frame(self.main_frame, bg="#e6f2ff")
@@ -90,7 +104,7 @@ class FileManagerGUI:
         btn_commands = [self.store_file, self.delete_file, self.view_files, self.show_analytics,
                         lambda: self.output.delete("1.0", END)]
         for text, cmd in zip(btn_texts, btn_commands):
-            b = Button(self.button_frame, text=text, width=20, height=2,
+            b = Button(self.button_frame, text=text, width=22, height=2,
                        bg="#3399ff", fg="white", font=("Helvetica", 12, "bold"),
                        activebackground="#1a75ff", activeforeground="white",
                        relief=RAISED, bd=4, command=cmd)
@@ -98,15 +112,6 @@ class FileManagerGUI:
             b.bind("<Enter>", lambda e, b=b: b.configure(bg="#1a75ff"))  # Hover effect
             b.bind("<Leave>", lambda e, b=b: b.configure(bg="#3399ff"))
             self.buttons.append(b)
-
-        # Result Box with Scrollbar
-        self.scroll = Scrollbar(self.main_frame)
-        self.scroll.pack(side=RIGHT, fill=Y)
-
-        self.output = Text(self.main_frame, height=10, width=60, yscrollcommand=self.scroll.set,
-                           font=("Helvetica", 12))
-        self.output.pack(pady=20)
-        self.scroll.config(command=self.output.yview)
 
         self.fm = FileManager()
         self.analytics = Analytics()
