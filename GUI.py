@@ -56,24 +56,44 @@ class FileManagerGUI:
             self.path_var.set(folder_selected)
 
     def create_folder(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         folder_name = simpledialog.askstring("Input", "Enter Folder Name:")
         if folder_name:
             result = self.fm.create_folder(self.path_var.get(), folder_name)
             self.show_result(result)
 
     def create_file(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         file_name = simpledialog.askstring("Input", "Enter File Name (with extension):")
         if file_name:
             result = self.fm.create_file(self.path_var.get(), file_name)
             self.show_result(result)
 
     def delete_item(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         file_path = filedialog.askopenfilename(initialdir=self.path_var.get())
         if file_path:
             result = self.fm.delete_item(file_path)
             self.show_result(result)
 
     def rename_item(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         file_path = filedialog.askopenfilename(initialdir=self.path_var.get())
         new_name = simpledialog.askstring("Input", "Enter New Name:")
         if file_path and new_name:
@@ -81,6 +101,11 @@ class FileManagerGUI:
             self.show_result(result)
 
     def move_item(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         source = filedialog.askopenfilename(initialdir=self.path_var.get())
         destination = filedialog.askdirectory()
         if source and destination:
@@ -88,6 +113,11 @@ class FileManagerGUI:
             self.show_result(result)
 
     def search_files(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         keyword = simpledialog.askstring("Input", "Enter keyword to search:")
         if keyword:
             results = self.fm.search_files(self.path_var.get(), keyword)
@@ -97,6 +127,11 @@ class FileManagerGUI:
                 self.show_result("No files found.")
 
     def show_storage(self):
+        # Change 5: Validate path before operation
+        if not self.path_var.get():
+            messagebox.showwarning("Warning", "Please select a folder first!")
+            return
+
         self.analytics.show_storage_usage(self.path_var.get())
 
     def show_result(self, message):
