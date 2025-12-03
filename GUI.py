@@ -1,3 +1,4 @@
+# ========================== # MODULE 1: GUI # ==========================
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
 from file_operations import FileManager
@@ -9,6 +10,12 @@ class FileManagerGUI:
         self.root.title("File Management System")
         self.root.geometry("600x400")
 
+        # Change 1: Add window icon
+        try:
+            self.root.iconbitmap("")   # Requires a .ico file
+        except:
+            pass
+
         self.fm = FileManager()
         self.analytics = Analytics()
 
@@ -18,7 +25,7 @@ class FileManagerGUI:
         tk.Entry(root, textvariable=self.path_var, width=50).pack(pady=5)
         tk.Button(root, text="Browse", command=self.browse_folder).pack(pady=5)
 
-        # Buttons for operations
+        # Buttons
         tk.Button(root, text="Create Folder", command=self.create_folder).pack(pady=5)
         tk.Button(root, text="Create File", command=self.create_file).pack(pady=5)
         tk.Button(root, text="Delete Item", command=self.delete_item).pack(pady=5)
@@ -85,10 +92,7 @@ class FileManagerGUI:
         self.result_box.insert(tk.END, str(message))
 
 
-# --------------------------
-# MAIN PROGRAM
-# --------------------------
-
+# -------------------------- # MAIN PROGRAM # --------------------------
 if __name__ == "__main__":
     root = tk.Tk()
     app = FileManagerGUI(root)
