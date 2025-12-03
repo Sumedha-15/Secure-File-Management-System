@@ -1,149 +1,105 @@
-# ========================== # MODULE 1: GUI # ==========================
-import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
-from file_operations import FileManager
-from analytics import Analytics
+import os
+import shutil
+import hashlib
+import datetime
+from tkinter import *
+from tkinter import messagebox, filedialog
+
+# CHANGE 7 → Added delete logging function
+def log_delete_operation(file_path):
+    with open("delete_log.txt", "a") as log:
+        log.write(f"{datetime.datetime.now()} - Deleted: {file_path}\n")
+
+
+def calculate_checksum(file_path):
+    sha256 = hashlib.sha256()
+    try:
+        with open(file_path, "rb") as f:
+            while chunk := f.read(4096):
+                sha256.update(chunk)
+        return sha256.hexdigest()
+    except FileNotFoundError:
+        return "File Not Found"
+
+
+class FileManager:
+    def __init__(self):
+        self.secure_folder = "secure_storage"
+        if not os.path.exists(self.secure_folder):
+            os.makedirs(self.secure_folder)
+
+    def store_file(self, source):
+        if os.path.exists(source):
+            shutil.copy(source, self.secure_folder)
+            return True
+        return False
+
+    def delete_file(self, file_name):
+        path = os.path.join(self.secure_folder, file_name)
+        if os.path.exists(path):
+            os.remove(path)
+
+            # CHANGE 7 → Log delete action here
+            log_delete_operation(path)
+
+            return True
+        return False
+
+    def list_files(self):
+        return sorted(os.listdir(self.secure_folder))
+
+
+class Analytics:
+    def generate_summary(self, files):
+        summary = f"Total Files: {len(files)}\n\nFile List:\n"
+        for f in files:
+            summary += f" - {f}\n"
+        return summary
+
 
 class FileManagerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("File Management System")
-        self.root.geometry("600x400")
-
-        # Change 1: Add window icon
-        try:
-            self.root.iconbitmap("")
-        except:
-            pass
-
-        # Change 2: Add heading label
-        tk.Label(root, text="Secure File Manager", font=("Arial", 16, "bold")).pack(pady=10)
-
+        self.root.title("Secure File Manager")
         self.fm = FileManager()
         self.analytics = Analytics()
 
-        # Path Entry
-        self.path_var = tk.StringVar()
-        tk.Label(root, text="Folder Path:").pack(pady=5)
-        tk.Entry(root, textvariable=self.path_var, width=50).pack(pady=5)
-        tk.Button(root, text="Browse", command=self.browse_folder).pack(pady=5)
+        Label(root, text="Secure File Management System", font=("Arial", 16)).pack()
 
-        # Buttons for operations
-        tk.Button(root, text="Create Folder", command=self.create_folder).pack(pady=5)
-        tk.Button(root, text="Create File", command=self.create_file).pack(pady=5)
-        tk.Button(root, text="Delete Item", command=self.delete_item).pack(pady=5)
-        tk.Button(root, text="Rename Item", command=self.rename_item).pack(pady=5)
-        tk.Button(root, text="Move Item", command=self.move_item).pack(pady=5)
-        tk.Button(root, text="Search Files", command=self.search_files).pack(pady=5)
-        tk.Button(root, text="Show Storage Usage", command=self.show_storage).pack(pady=5)
+        Button(root, text="Store File", command=self.store_file).pack(pady=5)
+        Button(root, text="Delete File", command=self.delete_file).pack(pady=5)
+        Button(root, text="View Files", command=self.view_files).pack(pady=5)
+        Button(root, text="Show Analytics", command=self.show_analytics).pack(pady=5)
 
-        # Change 4: Add Clear Output button
-        tk.Button(root, text="Clear Output", command=lambda: self.result_box.delete("1.0", tk.END)).pack(pady=5)
+        root.configure(bg="#e6f2ff")
 
-        # Change 3: Add scrollbar to result box
-        scroll = tk.Scrollbar(root)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.result_box = tk.Text(root, height=8, yscrollcommand=scroll.set)
-        self.result_box.pack(pady=10)
-        scroll.config(command=self.result_box.yview)
-
-    # ---------------- GUI FUNCTIONS ---------------- #
-
-    def browse_folder(self):
-        folder_selected = filedialog.askdirectory()
-        if folder_selected:
-            self.path_var.set(folder_selected)
-
-    def create_folder(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
-
-        folder_name = simpledialog.askstring("Input", "Enter Folder Name:")
-        if folder_name:
-            result = self.fm.create_folder(self.path_var.get(), folder_name)
-            self.show_result(result)
-
-    def create_file(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
-
-        file_name = simpledialog.askstring("Input", "Enter File Name (with extension):")
-        if file_name:
-            result = self.fm.create_file(self.path_var.get(), file_name)
-            self.show_result(result)
-
-    def delete_item(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
-
-        file_path = filedialog.askopenfilename(initialdir=self.path_var.get())
-        if file_path:
-            result = self.fm.delete_item(file_path)
-            self.show_result(result)
-
-    def rename_item(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
-
-        file_path = filedialog.askopenfilename(initialdir=self.path_var.get())
-        new_name = simpledialog.askstring("Input", "Enter New Name:")
-        if file_path and new_name:
-            result = self.fm.rename_item(file_path, new_name)
-            self.show_result(result)
-
-    def move_item(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
-
-        source = filedialog.askopenfilename(initialdir=self.path_var.get())
-        destination = filedialog.askdirectory()
-        if source and destination:
-            result = self.fm.move_item(source, destination)
-            self.show_result(result)
-
-    def search_files(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
-
-        keyword = simpledialog.askstring("Input", "Enter keyword to search:")
-        if keyword:
-            results = self.fm.search_files(self.path_var.get(), keyword)
-            if results:
-                self.show_result("\n".join(results))
+    def store_file(self):
+        path = filedialog.askopenfilename()
+        if path:
+            if self.fm.store_file(path):
+                messagebox.showinfo("Success", "File stored successfully!")
             else:
-                self.show_result("No files found.")
+                messagebox.showerror("Error", "Failed to store file.")
 
-    def show_storage(self):
-        # Change 5: Validate path before operation
-        if not self.path_var.get():
-            messagebox.showwarning("Warning", "Please select a folder first!")
-            return
+    def delete_file(self):
+        file_name = filedialog.askopenfilename(initialdir=self.fm.secure_folder)
+        file_name = os.path.basename(file_name)
+        if file_name:
+            if self.fm.delete_file(file_name):
+                messagebox.showinfo("Deleted", "File deleted successfully!")
+            else:
+                messagebox.showerror("Error", "File not found.")
 
-        self.analytics.show_storage_usage(self.path_var.get())
+    def view_files(self):
+        files = self.fm.list_files()
+        messagebox.showinfo("Files", "\n".join(files) if files else "No files found.")
 
-    def show_result(self, message):
-        self.result_box.delete("1.0", tk.END)
-        self.result_box.insert(tk.END, str(message))
-
-        # Change 6: Popup message after operations
-        messagebox.showinfo("Result", str(message))
+    def show_analytics(self):
+        files = self.fm.list_files()
+        summary = self.analytics.generate_summary(files)
+        messagebox.showinfo("Analytics Summary", summary)
 
 
-# -------------------------- # MAIN PROGRAM # --------------------------
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = FileManagerGUI(root)
-    root.mainloop()
+root = Tk()
+FileManagerGUI(root)
+root.mainloop()
