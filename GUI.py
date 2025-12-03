@@ -6,15 +6,15 @@ from tkinter import *
 from tkinter import messagebox, filedialog, simpledialog
 
 # ==========================
-# 7 CHANGES MARKED INSIDE CODE
+# Logging for delete actions
 # ==========================
-
-# CHANGE 7 → Delete logging function
-def log_delete_operation(file_path):  # CHANGE 7
+def log_delete_operation(file_path):
     with open("delete_log.txt", "a") as log:
         log.write(f"{datetime.datetime.now()} - Deleted: {file_path}\n")
 
-
+# ==========================
+# Checksum calculation
+# ==========================
 def calculate_checksum(file_path):
     sha256 = hashlib.sha256()
     try:
@@ -25,7 +25,9 @@ def calculate_checksum(file_path):
     except FileNotFoundError:
         return "File Not Found"
 
-
+# ==========================
+# File Manager Class
+# ==========================
 class FileManager:
     def __init__(self):
         self.secure_folder = "secure_storage"
@@ -42,14 +44,16 @@ class FileManager:
         path = os.path.join(self.secure_folder, file_name)
         if os.path.exists(path):
             os.remove(path)
-            log_delete_operation(path)   # CHANGE 7
+            log_delete_operation(path)
             return True
         return False
 
     def list_files(self):
         return sorted(os.listdir(self.secure_folder))
 
-
+# ==========================
+# Analytics Class
+# ==========================
 class Analytics:
     def generate_summary(self, files):
         summary = f"Total Files: {len(files)}\n\nFile List:\n"
@@ -57,40 +61,63 @@ class Analytics:
             summary += f" - {f}\n"
         return summary
 
-
+# ==========================
+# GUI Class
+# ==========================
 class FileManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Secure File Manager")
+        self.root.geometry("600x500")
+        self.root.configure(bg="#e6f2ff")  # Background color
 
-        self.root.iconbitmap("icon.ico")    # CHANGE 1 → Set window icon
+        # CENTERING FRAME
+        self.main_frame = Frame(root, bg="#e6f2ff")
+        self.main_frame.pack(expand=True)
 
-        Label(root, text="Secure File Management System", font=("Arial", 18, "bold")).pack(pady=10)   # CHANGE 2 → Added title label
+        # Title
+        self.title = Label(self.main_frame, text="Secure File Management System",
+                           font=("Helvetica", 20, "bold"), bg="#e6f2ff", fg="#1a1a1a")
+        self.title.pack(pady=20)
+
+        # Buttons Frame
+        self.button_frame = Frame(self.main_frame, bg="#e6f2ff")
+        self.button_frame.pack(pady=10)
+
+        # Buttons
+        self.buttons = []
+        btn_texts = ["Store File", "Delete File", "View Files", "Show Analytics", "Clear Output"]
+        btn_commands = [self.store_file, self.delete_file, self.view_files, self.show_analytics,
+                        lambda: self.output.delete("1.0", END)]
+        for text, cmd in zip(btn_texts, btn_commands):
+            b = Button(self.button_frame, text=text, width=20, height=2,
+                       bg="#3399ff", fg="white", font=("Helvetica", 12, "bold"),
+                       activebackground="#1a75ff", activeforeground="white",
+                       relief=RAISED, bd=4, command=cmd)
+            b.pack(pady=5)
+            b.bind("<Enter>", lambda e, b=b: b.configure(bg="#1a75ff"))  # Hover effect
+            b.bind("<Leave>", lambda e, b=b: b.configure(bg="#3399ff"))
+            self.buttons.append(b)
+
+        # Result Box with Scrollbar
+        self.scroll = Scrollbar(self.main_frame)
+        self.scroll.pack(side=RIGHT, fill=Y)
+
+        self.output = Text(self.main_frame, height=10, width=60, yscrollcommand=self.scroll.set,
+                           font=("Helvetica", 12))
+        self.output.pack(pady=20)
+        self.scroll.config(command=self.output.yview)
 
         self.fm = FileManager()
         self.analytics = Analytics()
 
-        scroll = Scrollbar(root)               # CHANGE 3 → Added scrollbar
-        scroll.pack(side=RIGHT, fill=Y)
-
-        self.output = Text(root, height=10, width=60, yscrollcommand=scroll.set)
-        self.output.pack(pady=10)
-        scroll.config(command=self.output.yview)
-
-        Button(root, text="Store File", command=self.store_file).pack(pady=5)
-        Button(root, text="Delete File", command=self.delete_file).pack(pady=5)
-        Button(root, text="View Files", command=self.view_files).pack(pady=5)
-        Button(root, text="Show Analytics", command=self.show_analytics).pack(pady=5)
-
-        Button(root, text="Clear Output", command=lambda: self.output.delete("1.0", END)).pack(pady=5)   # CHANGE 4 → Added clear output button
-
-        root.configure(bg="#e6f2ff")   # CHANGE 5 → Changed background color
-
+    # -------------------------
+    # GUI functions
+    # -------------------------
     def show_output(self, msg):
         self.output.delete("1.0", END)
         self.output.insert(END, msg)
-
-        messagebox.showinfo("Result", msg)    # CHANGE 6 → Show popup message after actions
+        messagebox.showinfo("Result", msg)
 
     def store_file(self):
         path = filedialog.askopenfilename()
@@ -120,6 +147,9 @@ class FileManagerGUI:
         self.show_output(summary)
 
 
+# ==========================
+# RUN GUI
+# ==========================
 root = Tk()
 FileManagerGUI(root)
 root.mainloop()
