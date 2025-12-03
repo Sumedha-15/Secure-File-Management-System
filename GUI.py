@@ -138,6 +138,9 @@ class FileManagerGUI:
         self.result_box.delete("1.0", tk.END)
         self.result_box.insert(tk.END, str(message))
 
+        # Change 6: Popup message after operations
+        messagebox.showinfo("Result", str(message))
+
 
 # -------------------------- # MAIN PROGRAM # --------------------------
 if __name__ == "__main__":
