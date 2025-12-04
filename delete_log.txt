@@ -1,0 +1,2 @@
+2025-12-04 11:45:38.483479 - Deleted: secure_storage\gp.cpp
+2025-12-04 12:30:18.280231 - Deleted: secure_storage\dynamic routing.pkt

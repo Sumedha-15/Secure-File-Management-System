@@ -1,27 +1,29 @@
-import os
-import shutil
-import hashlib
-import datetime
-from tkinter import *
+import os #For interacting with the operating system
+import shutil #For copying files from one location to another
+import hashlib #To calculate checksums
+import datetime #for logging timestamps 
+from tkinter import * #To create the GUI: windows, buttons, textboxes, etc.
 from tkinter import messagebox, filedialog, simpledialog
 
 # ==========================
 # Logging for delete actions
 # ==========================
+#for tracking file deletion, which is important in secure file management systems.
 def log_delete_operation(file_path):
-    with open("delete_log.txt", "a") as log:
+    with open("delete_log.txt", "a") as log: #Append mode 
         log.write(f"{datetime.datetime.now()} - Deleted: {file_path}\n")
 
 # ==========================
 # Checksum calculation
 # ==========================
+#ensures file integrity detects modification or any changes
 def calculate_checksum(file_path):
-    sha256 = hashlib.sha256()
+    sha256 = hashlib.sha256()#calculates checksum
     try:
         with open(file_path, "rb") as f:
             while chunk := f.read(4096):
                 sha256.update(chunk)
-        return sha256.hexdigest()
+        return sha256.hexdigest()# hexidecimal representation of the checkSum
     except FileNotFoundError:
         return "File Not Found"
 
@@ -30,21 +32,21 @@ def calculate_checksum(file_path):
 # ==========================
 class FileManager:
     def __init__(self):
-        self.secure_folder = "secure_storage"
+        self.secure_folder = "secure_storage" #Creates a folder called secure_storage where all files will be stored.
         if not os.path.exists(self.secure_folder):
-            os.makedirs(self.secure_folder)
+            os.makedirs(self.secure_folder) #creates folder if it does not exist.
 
     def store_file(self, source):
         if os.path.exists(source):
-            shutil.copy(source, self.secure_folder)
+            shutil.copy(source, self.secure_folder)#Stores a file in the secure folder using shutil.copy()
             return True
         return False
 
     def delete_file(self, file_name):
         path = os.path.join(self.secure_folder, file_name)
         if os.path.exists(path):
-            os.remove(path)
-            log_delete_operation(path)
+            os.remove(path)#delete the file from the secure folder
+            log_delete_operation(path)# we need logging for delete operation for security and tracking purposes
             return True
         return False
 
@@ -64,6 +66,7 @@ class Analytics:
 # ==========================
 # GUI Class
 # ==========================
+#Creates the main window of the application
 class FileManagerGUI:
     def __init__(self, root):
         self.root = root
@@ -90,7 +93,7 @@ class FileManagerGUI:
         self.scroll.pack(side=RIGHT, fill=Y)
 
         self.output = Text(box_frame, height=12, width=70, yscrollcommand=self.scroll.set,
-                           font=("Helvetica", 12), bg="#f0f8ff", bd=0, wrap=WORD)
+                           font=("Helvetica", 12), bg="#f0f8ff", bd=0, wrap=WORD) #link scroll bar to text box
         self.output.pack(side=LEFT, fill=BOTH, expand=True)
         self.scroll.config(command=self.output.yview)
 
@@ -119,12 +122,13 @@ class FileManagerGUI:
     # -------------------------
     # GUI functions
     # -------------------------
+    #Displays messages in both text box and popup.
     def show_output(self, msg):
         self.output.delete("1.0", END)
         self.output.insert(END, msg)
         messagebox.showinfo("Result", msg)
 
-    def store_file(self):
+    def store_file(self): #Opens a file dialog → stores selected file in secure folder.
         path = filedialog.askopenfilename()
         if path:
             if self.fm.store_file(path):
@@ -132,7 +136,7 @@ class FileManagerGUI:
             else:
                 self.show_output("Failed to store file.")
 
-    def delete_file(self):
+    def delete_file(self): #Deletes file from secure folder and logs deletion.
         file_path = filedialog.askopenfilename(initialdir=self.fm.secure_folder)
         file_name = os.path.basename(file_path)
         if file_name:
@@ -146,7 +150,7 @@ class FileManagerGUI:
         msg = "\n".join(files) if files else "No files found."
         self.show_output(msg)
 
-    def show_analytics(self):
+    def show_analytics(self): #show_analytics → shows file count and list
         files = self.fm.list_files()
         summary = self.analytics.generate_summary(files)
         self.show_output(summary)
@@ -155,6 +159,6 @@ class FileManagerGUI:
 # ==========================
 # RUN GUI
 # ==========================
-root = Tk()
-FileManagerGUI(root)
-root.mainloop()
+root = Tk() #creates main application window.
+FileManagerGUI(root) #initializes your GUI class.
+root.mainloop() #keeps GUI running until user closes it.
