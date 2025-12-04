@@ -287,11 +287,10 @@ class FileManagerGUI:
                 messagebox.showerror("Error", "File already exists.")
 
     def clear_all_files(self):
-        if not self.auth.current_user or self.auth.current_user["role"] != "admin":
-            messagebox.showerror("Access Denied", "Only admins can reset all files!")
-            return
-        confirm = messagebox.askyesno("Confirm Reset",
-                                      "Are you sure you want to delete ALL files and folders inside secure_storage?")
+        confirm = messagebox.askyesno(
+        "Confirm Reset",
+        "Are you sure you want to delete ALL files and folders inside secure_storage?"
+    )
         if confirm:
             self.fm.clear_all()
             self.print_output("All files deleted. Storage reset.")
@@ -301,7 +300,7 @@ class FileManagerGUI:
 
 # RUN APP
 
-root = Tk()
+root = Tk() 
 user_manager = UserManager()
 auth = AuthGUI(root, user_manager)
 app = FileManagerGUI(root, auth)
