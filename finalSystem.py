@@ -10,17 +10,17 @@ from tkinter import *
 from tkinter import messagebox, filedialog, simpledialog
 
 
-# ============================
+
 # LOG DELETE ACTION
-# ============================
+
 def log_delete_operation(file_path):
     with open("delete_log.txt", "a") as log:
         log.write(f"{datetime.datetime.now()} - Deleted: {file_path}\n")
 
 
-# ============================
+
 # CHECKSUM CALCULATOR
-# ============================
+
 def calculate_checksum(file_path):
     sha256 = hashlib.sha256()
     try:
@@ -32,9 +32,9 @@ def calculate_checksum(file_path):
         return "File Not Found"
 
 
-# ============================
+
 # FILE MANAGER BACKEND
-# ============================
+
 class FileManager:
     def __init__(self):
         self.secure_folder = "secure_storage"
@@ -84,9 +84,9 @@ class FileManager:
         return True
 
 
-# ============================
+
 # ANALYTICS MODULE
-# ============================
+
 class Analytics:
     def generate_summary(self, files):
         summary = f"Total Files: {len(files)}\n\nFile List:\n"
@@ -120,9 +120,9 @@ class Analytics:
         plt.show()
 
 
-# ============================
+
 # GUI
-# ============================
+
 class FileManagerGUI:
     def __init__(self, root):
         self.root = root
@@ -224,9 +224,10 @@ class FileManagerGUI:
             messagebox.showinfo("Reset", "Storage cleared successfully!")
 
 
-# ============================
+
 # RUN APP
-# ============================
+
 root = Tk()
 FileManagerGUI(root)
 root.mainloop()
+
