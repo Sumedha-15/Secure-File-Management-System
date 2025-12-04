@@ -1,13 +1,13 @@
-import os
-import shutil
-import hashlib
-import datetime
-import json
-import matplotlib
+import os         #File system operations like create, delete, copy files/folders.
+import shutil        #File system operations like create, delete, copy files/folders.
+import hashlib     #Used to hash passwords and calculate file checksums (SHA256).        
+import datetime         #Log timestamps for deleted files.
+import json           #Store user credentials in a JSON file.
+import matplotlib            #For analytics – plotting file type distributions.
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-from tkinter import *
+from tkinter import *       #GUI library to create windows, dialogs, buttons, and inputs.
 from tkinter import messagebox, filedialog, simpledialog, Toplevel
 
 
@@ -305,3 +305,4 @@ user_manager = UserManager()
 auth = AuthGUI(root, user_manager)
 app = FileManagerGUI(root, auth)
 root.mainloop()
+
