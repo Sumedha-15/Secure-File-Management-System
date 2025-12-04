@@ -10,6 +10,10 @@ class FileManager:
     def __init__(self):
         pass
 
+    # CHANGE : Helper method to check if a file exists
+    def file_exists(self, path):
+        return os.path.isfile(path)
+
     # Create a new folder
     def create_folder(self, path, folder_name):
         try:
