@@ -2,13 +2,13 @@ import os
 import shutil
 import hashlib
 import datetime
+import json
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from tkinter import *
-from tkinter import messagebox, filedialog, simpledialog
-
+from tkinter import messagebox, filedialog, simpledialog, Toplevel
 
 
 # LOG DELETE ACTION
@@ -16,7 +16,6 @@ from tkinter import messagebox, filedialog, simpledialog
 def log_delete_operation(file_path):
     with open("delete_log.txt", "a") as log:
         log.write(f"{datetime.datetime.now()} - Deleted: {file_path}\n")
-
 
 
 # CHECKSUM CALCULATOR
@@ -30,7 +29,6 @@ def calculate_checksum(file_path):
         return sha256.hexdigest()
     except FileNotFoundError:
         return "File Not Found"
-
 
 
 # FILE MANAGER BACKEND
@@ -74,7 +72,6 @@ class FileManager:
         return False
 
     def clear_all(self):
-        """Deletes all contents inside secure_storage but keeps the folder."""
         for item in os.listdir(self.secure_folder):
             path = os.path.join(self.secure_folder, item)
             if os.path.isfile(path):
@@ -82,7 +79,6 @@ class FileManager:
             else:
                 shutil.rmtree(path)
         return True
-
 
 
 # ANALYTICS MODULE
@@ -96,7 +92,6 @@ class Analytics:
 
     def generate_pie_chart(self, folder_path):
         files = os.listdir(folder_path)
-
         if not files:
             messagebox.showinfo("Analytics", "No files to analyze.")
             return
@@ -120,33 +115,112 @@ class Analytics:
         plt.show()
 
 
+# USER MANAGEMENT
 
-# GUI
+class UserManager:
+    def __init__(self, file="users.json"):
+        self.file = file
+        self.users = self.load_users()
+
+    def load_users(self):
+        if os.path.exists(self.file):
+            with open(self.file, "r") as f:
+                return json.load(f)
+        return {}
+
+    def save_users(self):
+        with open(self.file, "w") as f:
+            json.dump(self.users, f, indent=4)
+
+    def hash_password(self, password):
+        return hashlib.sha256(password.encode()).hexdigest()
+
+    def register_user(self, username, password, role="user"):
+        if username in self.users:
+            return False, "Username already exists"
+        self.users[username] = {"password": self.hash_password(password), "role": role}
+        self.save_users()
+        return True, "User registered successfully"
+
+    def authenticate(self, username, password):
+        if username in self.users and self.users[username]["password"] == self.hash_password(password):
+            return True, self.users[username]["role"]
+        return False, None
+
+
+# AUTHENTICATION GUI
+
+class AuthGUI:
+    def __init__(self, root, user_manager):
+        self.root = root
+        self.user_manager = user_manager
+        self.current_user = None
+        self.show_login()
+
+    def show_login(self):
+        self.root.withdraw()
+        login_win = Toplevel()
+        login_win.title("Login")
+        login_win.geometry("400x250")
+        login_win.configure(bg="#d9eaff")
+        login_win.grab_set()
+
+        Label(login_win, text="Secure File Management Login", font=("Arial", 16, "bold"), bg="#d9eaff").pack(pady=10)
+        Label(login_win, text="Username:", bg="#d9eaff").pack()
+        username_entry = Entry(login_win)
+        username_entry.pack()
+        Label(login_win, text="Password:", bg="#d9eaff").pack()
+        password_entry = Entry(login_win, show="*")
+        password_entry.pack()
+
+        def login_action():
+            username = username_entry.get()
+            password = password_entry.get()
+            success, role = self.user_manager.authenticate(username, password)
+            if success:
+                self.current_user = {"username": username, "role": role}
+                messagebox.showinfo("Success", f"Logged in as {role}")
+                login_win.destroy()
+                self.root.deiconify()
+            else:
+                messagebox.showerror("Error", "Invalid credentials")
+
+        def register_action():
+            username = username_entry.get()
+            password = password_entry.get()
+            if not username or not password:
+                messagebox.showerror("Error", "Please enter username and password")
+                return
+            success, msg = self.user_manager.register_user(username, password)
+            messagebox.showinfo("Register", msg)
+
+        Button(login_win, text="Login", command=login_action, bg="#5ea3ff", fg="white").pack(pady=5)
+        Button(login_win, text="Register", command=register_action, bg="#5ea3ff", fg="white").pack(pady=5)
+
+
+# FILE MANAGER GUI
 
 class FileManagerGUI:
-    def __init__(self, root):
+    def __init__(self, root, auth):
         self.root = root
+        self.auth = auth
+        self.fm = FileManager()
+        self.analytics = Analytics()
+
         self.root.title("Secure File Management System")
         self.root.geometry("900x650")
         self.root.configure(bg="#d9eaff")
 
-        self.fm = FileManager()
-        self.analytics = Analytics()
-
-        # Title
         Label(root, text="Secure File Management System",
               font=("Arial", 20, "bold"), bg="#d9eaff").pack(pady=15)
 
-        # Output Box
         self.output = Text(root, height=12, width=100,
                            bg="#e8f1ff", fg="black", font=("Arial", 12))
         self.output.pack(pady=10)
 
-        # Button Frame (vertical)
         btn_frame = Frame(root, bg="#d9eaff")
         btn_frame.pack(pady=10)
 
-        # Add buttons (stacked vertically)
         self.add_button(btn_frame, "Store File", self.store_file)
         self.add_button(btn_frame, "Delete File", self.delete_file)
         self.add_button(btn_frame, "View Files", self.view_files)
@@ -156,7 +230,6 @@ class FileManagerGUI:
         self.add_button(btn_frame, "Reset (Clear All Files)", self.clear_all_files)
         self.add_button(btn_frame, "Clear Output", self.clear_output)
 
-    # Reusable vertical button creator
     def add_button(self, frame, text, cmd):
         Button(frame, text=text, command=cmd, width=22, height=2,
                bg="#5ea3ff", fg="white", activebackground="#1f6feb",
@@ -194,7 +267,6 @@ class FileManagerGUI:
         files = self.fm.list_files()
         summary = self.analytics.generate_summary(files)
         messagebox.showinfo("Analytics Summary", summary)
-
         if files:
             self.analytics.generate_pie_chart(self.fm.secure_folder)
 
@@ -215,6 +287,9 @@ class FileManagerGUI:
                 messagebox.showerror("Error", "File already exists.")
 
     def clear_all_files(self):
+        if not self.auth.current_user or self.auth.current_user["role"] != "admin":
+            messagebox.showerror("Access Denied", "Only admins can reset all files!")
+            return
         confirm = messagebox.askyesno("Confirm Reset",
                                       "Are you sure you want to delete ALL files and folders inside secure_storage?")
         if confirm:
@@ -224,10 +299,10 @@ class FileManagerGUI:
             messagebox.showinfo("Reset", "Storage cleared successfully!")
 
 
-
 # RUN APP
 
 root = Tk()
-FileManagerGUI(root)
+user_manager = UserManager()
+auth = AuthGUI(root, user_manager)
+app = FileManagerGUI(root, auth)
 root.mainloop()
-
